@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Input page</title>
+	</head>
+	
+	<body>
+		<h1>What do you want?</h1>
+		
+		<form action="sql.php" method="post" enctype="multipart/form-data">
+			
+			Database Name : <input type="text" name="dbname" />
+			<br/>
+			
+			Provide SQL query you want :<br />
+			<input type="text" name="query" size = '100' />
+			<br />		
+	
+			<div id="submitbutton">
+				<input type="submit" value="Get result" />
+			</div>
+		
+		</form>
+	</body>
+</html>
