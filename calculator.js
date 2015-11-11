@@ -6,9 +6,9 @@ window.onload = function () {
     for (var i in $$('button')) {
         $$('button')[i].onclick = function () {
             var value = this.innerHTML;
-            var languageCheck = /[0-9]/;
+            var check = /[0-9]/;
 
-            if (languageCheck.test(value)) {
+            if (check.test(value)) {
 
                 if (displayVal =="0") {
                      displayVal = value;
@@ -19,7 +19,7 @@ window.onload = function () {
                 stack.push(displayVal);
                 document.getElementById('result').innerHTML = displayVal; 
             }else if (value =="AC") {
-                displayVal = "0";
+                displayVal = "0"
                 stack = [];
                 document.getElementById('result').innerHTML = "0";
                 document.getElementById('expression').innerHTML = "0";
