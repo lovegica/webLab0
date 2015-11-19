@@ -8,96 +8,135 @@ var trapTimer;
 var instantTimer;
 
 
-document.observe('dom:loaded', function() {
-	// targetTimer = 0;
-	// trapTimer = 0;
-	// instantTimer = 0;
-	$("start").observe("click", clickedStart);
-	$("stop").observe("click", stopGame);
+document.observe('dom:loaded', function(){
+	$("start").observe("click", function(){ // green
+		$("state").innerHTML = "Ready!";
+		$("score").innerHTML = 0;
+		console.log(targetBlocks);
+		
+		clearInterval(targetTimer);
+		clearInterval(trapTimer);
+		clearInterval(instantTimer);
+		setTimeout(startGame, 3000);
+		//targetBlocks = [];
+		
+	});
+
+	$("stop").observe("click", stopGame); //red 
 });
 
-function clickedStart() {	//called when clicked the start button
-	$("state").innerHTML = "Ready!";
-	$("score").innerHTML = 0;
-	instantTimer = setTimeout(startGame, 3000);
-}
-
 function startGame(){
-	clearTimeout(targetTimer);
-	clearTimeout(trapTimer);
+	var block = $$(".block");
+	trapBlock = null;
 	targetBlocks = [];
+
+	clearInterval(targetTimer);
+	clearInterval(trapTimer);
+	clearInterval(instantTimer);
+
+	for(var i=0;i<numberOfBlocks;i++){
+		$$(".block")[i].stopObserving("click");
+	}
+
+	for(var i=0; i<block.length; i++) {
+		block[i].removeClassName("target");
+		block[i].removeClassName("trap");
+	}
 	startToCatch();
 }
 
 function stopGame(){
-	$("state").innerHTML = "Stop";
-	clearTimeout(targetTimer);
-	clearTimeout(trapTimer); 
+
+	$("state").textContent = "Stop";
 	targetBlocks = [];
+	trapBlock = null;
+	clearInterval(targetTimer);
+	clearInterval(trapTimer);
+	clearInterval(instantTimer);
+	
+	var block = $$(".block");
+	for(var i=0;i<numberOfBlocks;i++){
+		$$(".block")[i].stopObserving("click");
+	}
 }
+
 
 function startToCatch(){
 	$("state").innerHTML = "Catch!";
+	var blocks = $$(".block");
+	var score = 0;
 
-	targetTimer = setInterval(showTargetBlock, 1000);
-	trapTimer = setInterval(showTrapBlock, 3000);
-}
+	targetTimer = setInterval(ViewTarget, 1000);
+	trapTimer = setInterval(ViewTrap, 3000);
 
-function showTargetBlock() {
-	var r;
-	var cnt;
-	while(true) {
-		cnt = 0;
-		r = Math.floor( Math.random()*9 );
-		for( var i=0; i<targetBlocks.length; i++ ) {
-			if( targetBlocks[i] == r ) {
-				cnt++;
+	for (var i = 0; i < numberOfBlocks; i++) {
+        blocks[i].observe("click", function() {
+			var sel = this.getAttribute("data-index");
+			if (blocks[sel].hasClassName("target")) {
+				score += 20;
+				blocks[sel].removeClassName("target");
+				blocks[sel].addClassName("normal");
+				targetBlocks.splice(targetBlocks.indexOf(sel),1);
 			}
-		}
-		if( cnt==0 ) {
-			targetBlocks.push(r);
-			break;
-		}
-	}
-
-	var block = $$(".blocks");
-	for( var i=0; i<targetBlocks.length; i++ ) {
-		block[targetBlocks[i]].addClassName("target");
-	}
-
-	if( isGameOver() ) {
-		alert("you lose");
-		stopGame();
-	}
-}
-
-function showTrapBlock() {
-	var r;
-	var cnt;
-	while(true) {
-		cnt = 0;
-		r = Math.floor( Math.random()*9 );
-		for( var i=0; i<targetBlocks.length; i++ ) {
-			if( targetBlocks[i] == r ) {
-				cnt++;
+			else if (blocks[sel].hasClassName("trap")) {
+				score -= 30;
+				blocks[sel].removeClassName("trap");
+				blocks[sel].addClassName("normal");
+				trapBlock = null;
+			}else {
+				score -= 10;
+				blocks[sel].removeClassName("normal");
+				blocks[sel].addClassName("wrong");
+				instantTimer = setTimeout(function() {
+					blocks[sel].removeClassName("wrong");
+		    		blocks[sel].addClassName("normal");
+				}, 100);
 			}
-		}
-		if( cnt==0 && r!=trapBlock ) {
-			trapBlock = r;
-			break;
-		}
-	}
-
-	var block = $$(".blocks");
-	block[r].addClassName("trap");
-
-	trapTimer = setTimeout( function(){block[r].removeClassName("trap")}, 2000 );
+			$("score").innerHTML = score + " ";
+        });
+    }
 }
 
-function isGameOver() {
-	var result = false;
-	if( targetBlocks.length > 4 ) {
-		result = true;
+function ViewTarget(){
+
+	if(targetBlocks.length<=4){
+
+		var temp = Math.floor(Math.random() * 9);
+		var blocks = $$(".block");
+
+		while (blocks[temp].hasClassName("target") || temp == trapBlock) {
+			temp = Math.floor(Math.random() * 9);
+		}
+		blocks[temp].addClassName("target");
+		targetBlocks.push(temp);
+
+		if (targetBlocks.length > 4) {
+			clearInterval(targetTimer);
+			clearInterval(trapTimer);
+			clearInterval(instantTimer);
+			alert("you lose");
+			for (var i = 0; i < numberOfBlocks; i++){
+				blocks[i].stopObserving("click");
+			}
+			stopGame();
+		}
 	}
-	return result;
+}
+
+function ViewTrap(){
+	var temp = Math.floor(Math.random() * 9);
+	var blocks=$$(".block");
+
+	while(targetBlocks.indexOf(temp) != -1) {
+		temp = Math.floor(Math.random() * 9);
+	}
+	trapBlock=temp;
+	blocks[temp].removeClassName("normal");
+	blocks[temp].addClassName("trap");
+
+	instantTimer = setTimeout(function() {
+		trapBlock = null;
+		blocks[temp].removeClassName("trap");
+		blocks[temp].addClassName("normal");
+	}, 2000);
 }
